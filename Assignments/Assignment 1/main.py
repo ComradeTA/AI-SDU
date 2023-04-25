@@ -4,6 +4,8 @@ class Node: # Node has only PARENT_NODE, STATE, DEPTH
         self.PARENT_NODE = parent
         self.DEPTH = depth
         self.HEURISTICS = HEURISTICS[self.STATE]
+        self.PATH_COST = 0
+        self.ESTIMATED_COST = 0
 
     def path(self): # Create a list of nodes from the root to this node.
         current_node = self
@@ -17,7 +19,7 @@ class Node: # Node has only PARENT_NODE, STATE, DEPTH
         print(self)
 
     def __repr__(self):
-        return 'State: ' + str(self.STATE) + ' - Depth: ' + str(self.DEPTH) + ' - Heuristics: ' + str(self.HEURISTICS)
+        return 'State: ' + str(self.STATE) + ' - Depth: ' + str(self.DEPTH) + ' - Heuristics: ' + str(self.HEURISTICS) + ' - Path cost: ' + str(self.PATH_COST) + ' - Estimated cost: ' + str(self.ESTIMATED_COST)
 
 
 '''
@@ -52,7 +54,7 @@ def GET_BEST_HEURISTIC_NODE(node_list, node_blacklist = []):
     node_list = [x for x in node_list if x not in node_blacklist]
     best_node = node_list[0]
     for node in node_list:
-        if best_node.HEURISTICS > node.HEURISTICS:
+        if best_node.ESTIMATED_COST > node.ESTIMATED_COST:
             best_node = node
     return best_node
 
@@ -79,6 +81,8 @@ def EXPAND(node):
         s.STATE = child # e.g. result = 'F' then 'G' from list ['F', 'G']
         s.PARENT_NODE = node
         s.DEPTH = node.DEPTH + 1
+        s.PATH_COST = node.PATH_COST + COST_PATHS[(node.STATE, child)]
+        s.ESTIMATED_COST = s.PATH_COST + s.HEURISTICS
         successors = INSERT(s, successors)
     return successors
 
@@ -119,20 +123,39 @@ def successor_fn(state): # Lookup list of successor states
 
 
 
-INITIAL_STATE = 'A'
-GOAL_STATES = ['K', 'L']
-STATE_SPACE = { 'A': ['B', 'C', 'D'],
-                'B': ['F', 'E'], 'C': ['E'], 'D': ['H', 'I', 'J'],
-                'E': ['G', 'H'], 'F': ['G'], 'G': ['K'],
-                'H': ['K', 'L'], 'I': ['L'], 'J': [], 'K': [], 'L': []}
-HEURISTICS = { 'A': 6,
-               'B': 5, 'C': 5, 'D': 2,
-               'E': 4, 'F': 5, 'G': 4,
-               'H': 1, 'I': 2,  'J': 1, 'K': 0, 'L': 0}
-COST_PATHS = { 'A': [1, 2, 4],
-                'B': [5, 4], 'C': [1], 'D': [1, 4, 2],
-                'E': [2, 3], 'F': [1], 'G': [6],
-                'H': [6, 5], 'I': [3], 'J': [], 'K': [], 'L': []}
+INITIAL_STATE = ('A', 'Dirty', 'Dirty')
+GOAL_STATES = [('A', 'Clean', 'Clean'), ('B', 'Clean', 'Clean')]
+
+STATE_SPACE = {
+    ('A', 'Dirty', 'Dirty'): [('A', 'Clean', 'Dirty'), ('B', 'Dirty', 'Dirty')],
+    ('A', 'Clean', 'Dirty'): [('B', 'Clean', 'Clean')],
+    ('A', 'Dirty', 'Clean'): [('A', 'Clean', 'Clean')],
+    ('B', 'Dirty', 'Dirty'): [('B', 'Clean', 'Dirty'), ('A', 'Dirty', 'Dirty')],
+    ('B', 'Clean', 'Dirty'): [('B', 'Clean', 'Clean')],
+    ('B', 'Dirty', 'Clean'): [('A', 'Clean', 'Clean')]
+}
+
+HEURISTICS = {
+    ('A', 'Dirty', 'Dirty'): 10,
+    ('A', 'Clean', 'Dirty'): 5,
+    ('A', 'Dirty', 'Clean'): 4,
+    ('B', 'Dirty', 'Dirty'): 8,
+    ('B', 'Clean', 'Dirty'): 6,
+    ('B', 'Dirty', 'Clean'): 5,
+    ('A', 'Clean', 'Clean'): 1,
+    ('B', 'Clean', 'Clean'): 2
+}
+
+COST_PATHS = {
+    (('A', 'Dirty', 'Dirty'), ('A', 'Clean', 'Dirty')): 3,
+    (('A', 'Dirty', 'Dirty'), ('B', 'Dirty', 'Dirty')): 1,
+    (('A', 'Clean', 'Dirty'), ('B', 'Clean', 'Clean')): 7,
+    (('A', 'Dirty', 'Clean'), ('A', 'Clean', 'Clean')): 6,
+    (('B', 'Dirty', 'Dirty'), ('B', 'Clean', 'Dirty')): 3,
+    (('B', 'Dirty', 'Dirty'), ('A', 'Dirty', 'Dirty')): 1,
+    (('B', 'Clean', 'Dirty'), ('B', 'Clean', 'Clean')): 8,
+    (('B', 'Dirty', 'Clean'), ('A', 'Clean', 'Clean')): 6
+}
 '''
 Run tree seach and display the nodes in the path to goal node
 '''

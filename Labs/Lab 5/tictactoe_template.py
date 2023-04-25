@@ -1,24 +1,26 @@
+from tictactoe_helper_functions import TicTacToe
+
 def minmax_decision(state):
 
     def max_value(state):
         if is_terminal(state):
             return utility_of(state)
         v = -infinity
-        for (a, s) in successors_of(state):
+        for (a, s) in successors_of(state, 'X'):
             v = max(v, min_value(s))
-        print('V: ' + str(v))
+        #print('V: ' + str(v))
         return v
 
     def min_value(state):
         if is_terminal(state):
             return utility_of(state)
         v = infinity
-        for (a, s) in successors_of(state):
+        for (a, s) in successors_of(state, 'O'):
             v = min(v, max_value(s))
         return v
 
     infinity = float('inf')
-    action, state = argmax(successors_of(state), lambda a: min_value(a[1]))
+    action, state = argmax(successors_of(state, 'X'), lambda a: min_value(a[1]))
     return action
 
 
@@ -28,7 +30,17 @@ def is_terminal(state):
     :param state: State of the checkerboard. Ex: [0; 1; 2; 3; X; 5; 6; 7; 8]
     :return:
     """
-    pass
+    winner = TicTacToe.checkForDiagnolWin(state)
+    if winner != 0:
+        return True
+    winner = TicTacToe.checkForHorizontalWin(state)
+    if winner != 0:
+        return True
+    winner = TicTacToe.checkForVerticalWin(state)
+    if winner != 0:
+        return True
+    return TicTacToe.checkForTie(state)
+
 
 
 def utility_of(state):
@@ -37,16 +49,36 @@ def utility_of(state):
     :param state: State of the checkerboard. Ex: [0; 1; 2; 3; X; 5; 6; 7; 8]
     :return:
     """
-    pass
+    winner = TicTacToe.checkForDiagnolWin(state)
+    if winner != 0:
+        return winner
+    winner = TicTacToe.checkForHorizontalWin(state)
+    if winner != 0:
+        return winner
+    winner = TicTacToe.checkForVerticalWin(state)
+    if winner != 0:
+        return winner
+    if TicTacToe.checkForTie(state) == True:
+        return 0
 
 
-def successors_of(state):
+def successors_of(state, player):
     """
     returns a list of tuples (move, state) as shown in the exercise slides
     :param state: State of the checkerboard. Ex: [0; 1; 2; 3; X; 5; 6; 7; 8]
     :return:
     """
-    pass
+    moves = []
+    temp_state = state.copy()
+    for i in range(len(state)):
+        if isinstance(state[i],int):
+            temp_state[i] = player
+            moves.append((i, temp_state))
+            temp_state = state.copy()
+        else:
+            continue
+    #print(moves)
+    return moves
 
 
 def display(state):
@@ -63,7 +95,6 @@ def main():
             display(board)
             board[int(input('Your move? '))] = 'O'
     display(board)
-
 
 def argmax(iterable, func):
     return max(iterable, key=func)

@@ -47,8 +47,19 @@ def reproduce(mother, father):
     Reproduce two individuals with single-point crossover
     Return the child individual
     '''
+    bits = []
 
-    #return child
+    crossoverPoint = random.randint(0,2)
+
+    for i in range(crossoverPoint):
+        bits.append(mother[i])
+
+    for i in range(crossoverPoint, 3):
+        bits.append(father[i])
+
+    child = tuple(bits)
+
+    return child
 
 
 def mutate(individual):
@@ -56,8 +67,21 @@ def mutate(individual):
     Mutate an individual by randomly assigning one of its bits
     Return the mutated individual
     '''
+    bits = []
+    mutate = random.randint(0,2)
 
-    #return mutation
+    for i in range(len(individual)):
+        if i == mutate:
+            if individual[i] == 0:
+                bits.append(1)
+            else:
+                bits.append(0)
+        else:
+            bits.append(individual[i])
+
+    mutation = tuple(bits)
+
+    return mutation
 
 
 def random_selection(population, fitness_fn):
@@ -73,9 +97,18 @@ def random_selection(population, fitness_fn):
     # want to do it in the same order. So let's convert it temporarily to a
     # list.
     ordered_population = list(population)
+    
+    fitness = []
+    selected = []
+
+    for individual in ordered_population:
+        fitness.append(fitness_fn(individual))
 
 
-    #return selected
+    selected = random.choices(ordered_population, fitness, k=2)
+
+
+    return selected
 
 
 def fitness_function(individual):
@@ -90,8 +123,8 @@ def fitness_function(individual):
 
     enumerate(reversed((1, 1, 0))) -> [(0, 0), (1, 1), (2, 1)]
     '''
-
-    #return fitness
+    fitness = int("".join(str(ele) for ele in individual), 2)
+    return fitness 
 
 
 def get_fittest_individual(iterable, func):
@@ -126,5 +159,4 @@ def main():
 
 
 if __name__ == '__main__':
-    pass
-    #main()
+    main()
