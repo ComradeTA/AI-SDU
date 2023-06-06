@@ -67,9 +67,27 @@ def compute_forward(states, observations, transitions, emissions):
     # probability matrix - all values initialized to 5, as 0 has meaning in the matrix
     forward = np.ones((big_n + 2, big_t + 1)) * 5
     
-    '''
-    FINISH FUNCITON
-    '''
+    # Initialization step
+    for s in inclusive_range(1, big_n):
+        forward[s,1] = transitions[0, s] * emissions[s, observations[1]]
+
+    # Recursion step
+    for t in inclusive_range(2, big_t):
+        for s in inclusive_range(1, big_n):
+                sum = 0
+                for s_prime in inclusive_range(1, big_n):
+                    sum += forward[s_prime, t-1] * transitions[s_prime, s] * emissions[s, observations[t]]
+                forward[s,t] = sum
+    
+    # Termination step
+    sum2 = 0
+    for s in inclusive_range(1, big_n):
+        sum2 += forward[s,big_t] * transitions[s, f]
+
+    forward[f,big_t] = sum2
+
+    return forward[f, big_t]
+
     
 
 
@@ -91,12 +109,39 @@ def compute_viterbi(states, observations, transitions, emissions):
     # all values initialized to 5, as 0 is valid value in matrix
     backpointers = np.ones((big_n + 2, big_t + 1), dtype=int) * 5
 
-    return []
-    '''
-    FINISH FUNCTION
-    '''
-
+    # Initialzation step
+    for s in inclusive_range(1, big_n):
+        viterbi[s,1] = transitions[0,s] * emissions[s, observations[1]]
+        backpointers[s,1] = 0
     
+    # Recursion step
+    for t in inclusive_range(2, big_t):
+        for s in inclusive_range(1, big_n):
+            maxList = []
+            argmaxList = []
+            for s_prime in inclusive_range(1, big_n):
+                maxList.append(viterbi[s_prime, t-1] * transitions[s_prime, s] * emissions[s, observations[t]])
+                argmaxList.append(viterbi[s_prime, t-1] * transitions[s_prime, s])
+            viterbi[s, t] = max(maxList)
+
+            backpointers[s, t] = argmax(argmaxList)
+
+    # Termination step
+    terminationList = []
+    for s in inclusive_range(1, big_n):
+        terminationList.append(viterbi[s, big_t] * transitions[s, f])
+
+    viterbi[f, big_t] = max(terminationList)
+    backpointers[f, big_t] = argmax(terminationList)
+
+    index = backpointers[f, big_t]
+    path = []
+    path.append(states[index])
+    for t in range(big_t + 1, 1, -1):
+        index = backpointers[index, t-1]
+        path.append(states[index])
+    return reversed(path[: -1])
+
 
 
 def argmax(sequence):
